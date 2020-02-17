@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as spi
 import matplotlib.pyplot as plt
 
-## Sistema Alpha Centauri: Alpha Centauri A, B, Proxima + corpo
+## Alpha Centauri system: Alpha Centauri A+B, Proxima + extra test body of pre-selected initial conditions
 G=6.67408e-11 #m³kg⁻¹s⁻1
 M_s=1.989e30 #kg
 AU= 1.49597e11 #m
@@ -10,10 +10,10 @@ pc=3.08567758e16 #m
 
 M_A, M_B, M_P, M_c =1.1055*M_s, 0.9373*M_s,0.1221*M_s,0 #kg
 
-#distâncias ao baricentro
+#distances to the barycenter
 d_A,d_B,d_P=10.9*AU,12.8*AU,13*10e3*AU #m, semieixo maior
 
-#condições iniciais fixas - coordenadas heliocentricas
+#initial conditions - heliocentric coordenates
 pos_AB=np.array([.95845*pc,-.93402*pc,-.01601*pc])
 pos_P=np.array([.90223*pc,-.93599*pc,-.04386*pc])
 v_AB, v_P=np.array([-29291,1710,13589]), np.array([-29390,1883,13777]) #ms⁻¹
@@ -26,7 +26,7 @@ R_d=np.max(np.array([np.max(np.absolute(pos_AB)),np.max(np.absolute(pos_P))]))
 M_d=np.sum(ms_d1)
 
 
-##################solver#########################
+################## solver #########################
 
 def cm_va(M,R,rs,vs,m):
     r_cm=(np.dot(m[None, :],rs))/M
@@ -47,7 +47,6 @@ def bi(x,m):
     return b
 
 def ncorpos(u,r,m):
-    "Define a equação diferencial a resolver"
     N=len(m)
     xs,ys=np.reshape(r[:3*N],(N,3)),np.reshape(r[3*N:],(N,3))
     dx=2*ys
@@ -56,7 +55,6 @@ def ncorpos(u,r,m):
     return rf
 
 def sol_eq(r0,m,T,step=0.0001):
-    "Resolve a equação e retorna 3 arrays 1d: evolução de todas as componentes das posições, evolução das componentes das velocidades, tempos"
     N=len(m)
     xs=np.zeros((N,3),dtype=float)
     ys=xs*0.
@@ -92,17 +90,11 @@ def get_energy(m,x,y,ts,p=0):
     return PE,KE
 
 
-#
-###fazer  plot para massas diferentes com condições iniciais
-#[4,0,0]
-#[4,-2,0]
-#[4,-4,0]
-
 ##tests###
-#condições iniciais sem corpo extra nas coordenadas do CM do sistema alfa centauri
+#sets initial conditions in the reference frame of the center of mass of the alpha centauri system
 m_d1,x_d1,y_d1=cm_va(M_d,R_d,pos_sis2,vs_sis2,ms_d1)
 
-##conds iniciais para o corpo extra - relativo ao cm d 
+##initial conditions of the extra body in the same reference frame
 x_corpo=np.array([4, 0 ,0])
 y_corpo=np.array([-1,1,0])
 
@@ -114,11 +106,11 @@ x_new,y_new=np.append(x_d1,x_corpo),np.append(y_d1,y_corpo)
 r_2=np.concatenate((x_d1.flatten(),y_d1.flatten()),axis=0)
 r_3=np.concatenate((x_new.flatten(),y_new.flatten()),axis=0)
 
-#x2,y2,t2=sol_eq(r_2,m_d1,500,0.005)
+x2,y2,t2=sol_eq(r_2,m_d1,500,0.005)
 
 m_new=np.append(m_d1,m_corpo)
 #for m in m_list:
-#m_new=np.append(m_d1,m)
+#m_new=np.append(m_d1,m) #used to plot energies for different masses
 xs3,ys3,ts3=sol_eq(r_3,m_new,50,0.01)
 
 #PE3,KE3=get_energy(m_new,xs3,ys3,ts3,1)
@@ -131,26 +123,27 @@ xs3,ys3,ts3=sol_eq(r_3,m_new,50,0.01)
 #plt.title("arbitrary plane of motion")
 #plt.show()
 
-T=len(ts3)
-t=T//10
-for i in range(10):
-    plt.plot(xs3[0,:][:i*t],xs3[1,:][:i*t], label=r"$\alpha$ A+B")
-    plt.plot(xs3[3,:][:i*t],xs3[4,:][:i*t], label=r"$\alpha$ P")
-    plt.plot(xs3[6,:][:i*t],xs3[7,:][:i*t],label=r"$M/M_T $ = {}".format(m_corpo))
-    plt.legend(fontsize=13)
-    plt.savefig("perturb001.pdf",dpi=1000,transparent=True,bbox_inches='tight')
-    plt.xlabel("arbitrary plane: axis 1", fontsize=15)
-    plt.ylabel("arbitrary plane: axis 2", fontsize=15)
-    plt.show()
-
-
-
-    ####energy
-   # plt.plot(ts3,KE3+PE3,label=r"added  body, $M/M_T = ${}".format(m_corpo))
-   # plt.xlabel("time", fontsize=15)
-   # plt.ylabel("total energy, arbitrary units",fontsize=15)
-   # plt.savefig("energy001.pdf",dpi=1000,transparent=True,bbox_inches='tight')
-  #  plt.plot(t2,KE1+PE1,label="original system")
- #   plt.legend(fontsize=13)
+#plots trajectories in different frames
+#T=len(ts3)
+#t=T//10
+#for i in range(10):
+#    plt.plot(xs3[0,:][:i*t],xs3[1,:][:i*t], label=r"$\alpha$ A+B")
+#    plt.plot(xs3[3,:][:i*t],xs3[4,:][:i*t], label=r"$\alpha$ P")
+#    plt.plot(xs3[6,:][:i*t],xs3[7,:][:i*t],label=r"$M/M_T $ = {}".format(m_corpo))
+#    plt.legend(fontsize=13)
+#    plt.savefig("perturb001.pdf",dpi=1000,transparent=True,bbox_inches='tight')
+#    plt.xlabel("arbitrary plane: axis 1", fontsize=15)
+#    plt.ylabel("arbitrary plane: axis 2", fontsize=15)
 #    plt.show()
+
+
+
+    ####plots energies
+    #plt.plot(ts3,KE3+PE3,label=r"added  body, $M/M_T = ${}".format(m_corpo))
+    #plt.xlabel("time", fontsize=15)
+    #plt.ylabel("total energy, arbitrary units",fontsize=15)
+    #plt.savefig("energy001.pdf",dpi=1000,transparent=True,bbox_inches='tight')
+    #plt.plot(t2,KE1+PE1,label="original system")
+    #plt.legend(fontsize=13)
+    #plt.show()
 
